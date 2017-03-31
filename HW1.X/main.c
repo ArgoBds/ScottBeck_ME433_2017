@@ -56,10 +56,21 @@ int main() {
     // do your TRIS and LAT commands here
     
     TRISAbits.TRISA4 = 0;
+    TRISBbits.TRISB4 = 1;
     LATAbits.LATA4 = 1;
 
+    _CP0_SET_COUNT(0);
     __builtin_enable_interrupts();
     while(1) {
+        while(PORTBbits.RB4 == 0){
+            
+        }
+        
+        if(_CP0_GET_COUNT() > 11999)
+        {
+            LATAINV = 0x0010;
+            _CP0_SET_COUNT(0);
+        }
         
         
     }

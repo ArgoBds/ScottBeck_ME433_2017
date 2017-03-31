@@ -17,7 +17,7 @@
 #pragma config OSCIOFNC = OFF // free up secondary osc pins
 #pragma config FPBDIV = DIV_1 // divide CPU freq by 1 for peripheral bus clock
 #pragma config FCKSM = CSDCMD // do not enable clock switch
-#pragma config WDTPS = PS1 // slowest wdt
+#pragma config WDTPS = PS1048576 // slowest wdt
 #pragma config WINDIS = OFF // no wdt window
 #pragma config FWDTEN = OFF // wdt off by default
 #pragma config FWDTWINSZ = WINSZ_25 // wdt window at 25%
@@ -56,24 +56,11 @@ int main() {
     // do your TRIS and LAT commands here
     
     TRISAbits.TRISA4 = 0;
-    TRISBbits.TRISB4 = 1;
-    LATAbits.LATA4 = 0;
-    
+    LATAbits.LATA4 = 1;
 
     __builtin_enable_interrupts();
-    _CP0_SET_COUNT(0);
     while(1) {
-        while(LATBbits.LATB4 == 0){
-            
-        }
-        
-        if(_CP0_GET_COUNT() > 23999){
-            LATAINV = 0x0010;
-            _CP0_SET_COUNT(0);
-        }
         
         
-	    // use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
-		  // remember the core timer runs at half the CPU speed
     }
 }

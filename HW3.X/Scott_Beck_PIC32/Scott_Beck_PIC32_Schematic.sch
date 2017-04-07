@@ -9174,14 +9174,14 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="R3" gate="G$1" pin="1"/>
 </segment>
 </net>
-<net name="N$7" class="0">
+<net name="PGD" class="0">
 <segment>
 <pinref part="U$6" gate="G$1" pin="4.PGD"/>
 <pinref part="U$1" gate="G$1" pin="4.PGED1/B0"/>
 <wire x1="-116.84" y1="22.86" x2="-86.36" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$8" class="0">
+<net name="PGC" class="0">
 <segment>
 <pinref part="U$6" gate="G$1" pin="5.PGC"/>
 <pinref part="U$1" gate="G$1" pin="5.PGEC1/B1"/>

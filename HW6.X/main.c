@@ -2,6 +2,7 @@
 #include<sys/attribs.h>  // __ISR macro
 #include<math.h> //Math Functions
 #include "ILI9163C.h"
+#include<stdio.h>
 
 // DEVCFG0
 #pragma config DEBUG = OFF // no debugging
@@ -38,9 +39,6 @@
 #pragma config FUSBIDIO = ON // USB pins controlled by USB module
 #pragma config FVBUSONIO = ON // USB BUSON controlled by USB module
 
-#define SLAVE_ADDR 0b00100000
-
-
 
 void LCD_drawChar(unsigned short x0, unsigned short y0, unsigned char letter, unsigned short color){
     unsigned char index;
@@ -50,7 +48,7 @@ void LCD_drawChar(unsigned short x0, unsigned short y0, unsigned char letter, un
         if(x0+i<128){
             for(j=0;j<8;j++){
                 if(y0+j<128){
-                    if((ASCII[index][i]>>(7-j))&0b1){
+                    if((ASCII[index][i]>>j)&0b1){
                         LCD_drawPixel(x0+i,y0+j,color);
                     }
                     else{
@@ -60,6 +58,22 @@ void LCD_drawChar(unsigned short x0, unsigned short y0, unsigned char letter, un
                 }
             }
         }
+    }
+}
+
+void LCD_drawString(unsigned short x0, unsigned short y0, char* text, unsigned short color){
+    int char_index = 0;
+    while(text[char_index]){
+        LCD_drawChar(x0,y0,text[char_index],color);
+        x0 = x0+6;
+        char_index++;
+    }
+}
+
+void LCD_barUpdate(unsigned short x0, unsigned short y0, unsigned short currLength, unsigned short color){
+    int i;
+    for(i=0;i<5;i++){
+        LCD_drawPixel(x0+currLength,y0+i,color);
     }
 }
 
@@ -80,16 +94,28 @@ int main() {
     DDPCONbits.JTAGEN = 0;
 
     // do your TRIS and LAT commands here
+    TRISAbits.TRISA4 = 0;
+    
     SPI1_init();
     LCD_init();
     LCD_clearScreen(WHITE);
     
  
     __builtin_enable_interrupts();
-    
-    LCD_drawChar(28,32,'H',GREEN);
+    char message[17];
     while(1)
     {
+        int i;
+        for(i=0;i<101;i++){
+            _CP0_SET_COUNT(0);
+            sprintf(message,"Hello World %d!  ",i);
+            LCD_drawString(28,32,message,BLACK);
+            LCD_barUpdate(13,50,i,RED);
+            while(_CP0_GET_COUNT()<4799999){
+                ;
+            }
+        }
+        LCD_clearScreen(WHITE);
 
     }
 }

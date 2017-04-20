@@ -56,7 +56,7 @@ void expanderInit(){
     i2c_master_start();
     i2c_master_send(SLAVE_ADDR << 1);
     i2c_master_send(0x06);
-    i2c_master_send(0x80);
+    i2c_master_send(0xF0);
     i2c_master_stop();
     
 }
@@ -102,18 +102,23 @@ int main() {
     // do your TRIS and LAT commands here
     i2c_master_setup();
     expanderInit();
+    TRISAbits.TRISA4 = 0;
+    LATAbits.LATA4 = 1;
     
  
     __builtin_enable_interrupts();
     
-
+        
     while(1)
     {
+        
+        
         if((getExpander() & 0b10000000) == 0b00000000){
             setExpander(0,1);
-            while((getExpander() & 0b10000000) == 0b00000000){
-                ;
-            }
+            
+        }
+        else{
+            
             setExpander(0,0);
         }
     }

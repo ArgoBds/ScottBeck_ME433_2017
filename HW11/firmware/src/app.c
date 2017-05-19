@@ -83,6 +83,14 @@ APP_DATA appData;
 MOUSE_REPORT mouseReport APP_MAKE_BUFFER_DMA_READY;
 MOUSE_REPORT mouseReportPrevious APP_MAKE_BUFFER_DMA_READY;
 
+#define SLAVE_ADDR 0b01101011
+signed short IMU_values[7];
+unsigned char IMU_data[14];
+static uint8_t incX = 0;
+static uint8_t incY = 0;
+static int8_t inc_thresX = 10;
+static int8_t inc_thresY = 10;
+
 
 // *****************************************************************************
 // *****************************************************************************
@@ -260,6 +268,20 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event, void * eventData, uintptr
     See prototype in app.h.
  */
 
+void IMU_Init() {
+    i2c_master_start();
+    i2c_master_send(SLAVE_ADDR << 1);
+    i2c_master_send(0x10);
+    i2c_master_send(0x82);
+    i2c_master_stop();
+
+    i2c_master_start();
+    i2c_master_send(SLAVE_ADDR << 1);
+    i2c_master_send(0x11);
+    i2c_master_send(0x88);
+    i2c_master_stop();
+}
+
 void APP_Initialize(void) {
     /* Place the App state machine in its initial state. */
     appData.state = APP_STATE_INIT;
@@ -268,6 +290,32 @@ void APP_Initialize(void) {
     //appData.emulateMouse = true;
     appData.hidInstance = 0;
     appData.isMouseReportSendBusy = false;
+
+    i2c_master_setup();
+    IMU_Init();
+}
+
+void I2C_read_multiple(unsigned char reg, unsigned char * data, int length) {
+    i2c_master_start();
+    i2c_master_send(SLAVE_ADDR << 1);
+    i2c_master_send(reg);
+    i2c_master_restart();
+    i2c_master_send((SLAVE_ADDR << 1) | 1);
+    int i;
+    for (i = 0; i < (length - 1); i++) {
+        *(data + i) = i2c_master_recv();
+        i2c_master_ack(0);
+    }
+    *(data + (length - 1)) = i2c_master_recv();
+    i2c_master_ack(1);
+    i2c_master_stop();
+}
+
+void chars_2_ints(unsigned char* data, signed short* values) {
+    int i;
+    for (i = 0; i < 7; i++) {
+        *(values + i) = ((data[2 * i + 1] << 8) | data[2 * i]);
+    }
 }
 
 /******************************************************************************
@@ -279,10 +327,6 @@ void APP_Initialize(void) {
  */
 
 void APP_Tasks(void) {
-    static int8_t vector = 0;
-    static uint8_t movement_length = 0;
-    int8_t dir_table[] = {-4, -4, -4, 0, 4, 4, 4, 0};
-
     /* Check the application's current state. */
     switch (appData.state) {
             /* Application's initial state. */
@@ -317,16 +361,66 @@ void APP_Tasks(void) {
             break;
 
         case APP_STATE_MOUSE_EMULATE:
-            
+
             // every 50th loop, or 20 times per second
-            if (movement_length > 50) {
-                appData.mouseButton[0] = MOUSE_BUTTON_STATE_RELEASED;
-                appData.mouseButton[1] = MOUSE_BUTTON_STATE_RELEASED;
-                appData.xCoordinate = (int8_t) dir_table[vector & 0x07];
-                appData.yCoordinate = (int8_t) dir_table[(vector + 2) & 0x07];
-                vector++;
-                movement_length = 0;
+            I2C_read_multiple(0x20, IMU_data, 14);
+            chars_2_ints(IMU_data, IMU_values);
+
+            appData.mouseButton[0] = MOUSE_BUTTON_STATE_RELEASED;
+            appData.mouseButton[1] = MOUSE_BUTTON_STATE_RELEASED;            
+            if(IMU_values[4]>500){
+                inc_thresX = 16-IMU_values[4]/1000;
+                if(incX>=inc_thresX){
+                    incX = 0;
+                    appData.xCoordinate = (int8_t) 2;
+                }
+                else{
+                    incX++;
+                    appData.xCoordinate = (int8_t) 0;
+                }
             }
+            else if(IMU_values[4]<-500){
+                inc_thresX = 16+IMU_values[4]/1000;
+                if(incX>=inc_thresX){
+                    incX = 0;
+                    appData.xCoordinate = (int8_t) -2;
+                }
+                else{
+                    incX++;
+                    appData.xCoordinate = (int8_t) 0;
+                }
+            }
+            else{
+                appData.xCoordinate = (int8_t) 0;
+            }
+            
+            if(IMU_values[5]>500){
+                inc_thresY = 16-IMU_values[5]/1000;
+                if(incY>=inc_thresY){
+                    incY = 0;
+                    appData.yCoordinate = (int8_t) 2;
+                }
+                else{
+                    incY++;
+                    appData.yCoordinate = (int8_t) 0;
+                }
+            }
+            else if(IMU_values[5]<-500){
+                inc_thresY = 16+IMU_values[5]/1000;
+                if(incY>=inc_thresY){
+                    incY = 0;
+                    appData.yCoordinate = (int8_t) -2;
+                }
+                else{
+                    incY++;
+                    appData.yCoordinate = (int8_t) 0;
+                }
+            }
+            else{
+                appData.yCoordinate = (int8_t) 0;
+            }
+           
+
 
             if (!appData.isMouseReportSendBusy) {
                 /* This means we can send the mouse report. The
@@ -378,7 +472,6 @@ void APP_Tasks(void) {
                             sizeof (MOUSE_REPORT));
                     appData.setIdleTimer = 0;
                 }
-                movement_length++;
             }
 
             break;

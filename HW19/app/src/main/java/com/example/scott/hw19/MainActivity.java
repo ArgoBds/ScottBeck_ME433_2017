@@ -37,25 +37,18 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
     private Paint paint1 = new Paint();
     private TextView mTextView;
     SeekBar myControl;
-    TextView myTextView;
     SeekBar myControl2;
-    TextView myTextView2;
 
     static long prevtime = 0; // for FPS calculation
     static int Rthresh = 20;
     static int Tthresh = 20;
-    static int COM = 0;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // keeps the screen from turning off
         myControl = (SeekBar) findViewById(R.id.seek1);
-        myTextView = (TextView) findViewById(R.id.textView01);
-        myTextView.setText("Red Threshold: 20");
         myControl2 = (SeekBar) findViewById(R.id.seek2);
-        myTextView2 = (TextView) findViewById(R.id.textView02);
-        myTextView2.setText("Green Threshold: 20");
         mTextView = (TextView) findViewById(R.id.cameraStatus);
 
         // see if the app has permission to use the camera
@@ -115,41 +108,49 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         if (c != null) {
             Rthresh = myControl.getProgress();
             Tthresh = myControl2.getProgress();
-            myTextView.setText("Red Threshold: "+myControl.getProgress());
-            myTextView2.setText("Green Threshold: "+myControl2.getProgress());
             int[] pixels = new int[bmp.getWidth()]; // pixels[] is the RGBA data
             int startY = 479; // which row in the bitmap to analyze to read
-            for(int j=0; j<480;j+=5){
+            for(int j=0; j<480;j+=10){
                 bmp.getPixels(pixels, 0, bmp.getWidth(), 0, startY-j, bmp.getWidth(), 1);
 
                 // in the row, see if there is more green than red
                 int sum_mr = 0; // the sum of the mass times the radius
                 int sum_m = 0; // the sum of the masses
+                int COM =0;
 
-                /*for (int i = 0; i < bmp.getWidth(); i++) {
-                    if (((green(pixels[i]) - red(pixels[i])) > -Rthresh)&&((green(pixels[i]) - red(pixels[i])) < Rthresh)&&(green(pixels[i])  > Tthresh)) {
+                for (int i = 0; i < bmp.getWidth(); i++) {
+                    if (((green(pixels[i]) - red(pixels[i])) > -Rthresh)&&((green(pixels[i]) - red(pixels[i])) < Rthresh)&&(green(pixels[i])  > Tthresh)){
                         pixels[i] = rgb(1, 1, 1); // set the pixel to almost 100% black
 
                         sum_m = sum_m + green(pixels[i])+red(pixels[i])+blue(pixels[i]);
                         sum_mr = sum_mr + (green(pixels[i])+red(pixels[i])+blue(pixels[i]))*i;
+                        pixels[i] = rgb(255,255,0); // over write the pixel with pure green
                     }
                 }
+
                 // only use the data if there were a few pixels identified, otherwise you might get a divide by 0 error
                 if(sum_m>5){
                     COM = sum_mr / sum_m;
+                    canvas.drawCircle(COM, j, 5, paint1); // x position, y position, diameter, color
                 }
                 else{
                     COM = 0;
-                }*/
+                }
 
-                int pos = 50;
-                canvas.drawCircle(pos, j, 5, paint1); // x position, y position, diameter, color
 
                 // update the row
                 bmp.setPixels(pixels, 0, bmp.getWidth(), 0, startY-j, bmp.getWidth(), 1);
-
             }
+
         }
+
+        // draw a circle at some position
+        int pos = 50;
+
+        // write the pos as text
+        canvas.drawText("pos = " + pos, 10, 200, paint1);
+        c.drawBitmap(bmp, 0, 0, null);
+        mSurfaceHolder.unlockCanvasAndPost(c);
 
         // calculate the FPS to see how fast the code is running
         long nowtime = System.currentTimeMillis();

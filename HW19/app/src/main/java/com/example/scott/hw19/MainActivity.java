@@ -110,7 +110,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
             Tthresh = myControl2.getProgress();
             int[] pixels = new int[bmp.getWidth()]; // pixels[] is the RGBA data
             int startY = 479; // which row in the bitmap to analyze to read
-            for(int j=0; j<480;j+=10){
+            for(int j=0; j<480;j+=5){
                 bmp.getPixels(pixels, 0, bmp.getWidth(), 0, startY-j, bmp.getWidth(), 1);
 
                 // in the row, see if there is more green than red
@@ -131,7 +131,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
                 // only use the data if there were a few pixels identified, otherwise you might get a divide by 0 error
                 if(sum_m>5){
                     COM = sum_mr / sum_m;
-                    canvas.drawCircle(COM, j, 5, paint1); // x position, y position, diameter, color
+                    canvas.drawCircle(COM, startY-j, 5, paint1); // x position, y position, diameter, color
                 }
                 else{
                     COM = 0;

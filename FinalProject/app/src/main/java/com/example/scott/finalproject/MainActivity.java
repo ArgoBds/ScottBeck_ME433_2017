@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -21,8 +20,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -80,10 +77,11 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // keeps the screen from turning off
 
         mTextView = (TextView) findViewById(R.id.cameraStatus);
-        myControl = (SeekBar) findViewById(R.id.seek1);
 
+        myControl = (SeekBar) findViewById(R.id.seek1);
         myTextView = (TextView) findViewById(R.id.textView01);
         myTextView.setText("Enter whatever you Like!");
+        setMyControlListener();
         myTextView2 = (TextView) findViewById(R.id.textView02);
         myScrollView = (ScrollView) findViewById(R.id.ScrollView01);
         myTextView3 = (TextView) findViewById(R.id.textView03);
@@ -119,7 +117,6 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
 
         });
 
-        setMyControlListener();
         manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
     }

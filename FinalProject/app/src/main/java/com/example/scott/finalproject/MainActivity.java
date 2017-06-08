@@ -57,6 +57,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
     private Canvas canvas = new Canvas(bmp);
     private Paint paint1 = new Paint();
     private TextView mTextView;
+
     SeekBar myControl;
     TextView myTextView;
     Button button;
@@ -77,6 +78,8 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // keeps the screen from turning off
+
+        mTextView = (TextView) findViewById(R.id.cameraStatus);
         myControl = (SeekBar) findViewById(R.id.seek1);
 
         myTextView = (TextView) findViewById(R.id.textView01);

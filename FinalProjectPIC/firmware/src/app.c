@@ -74,8 +74,8 @@ int rxVal = 0; // a place to store the int that was received
 int error = 0;
 int left = 0;
 int right = 0;
-static int MAX_DUTY = 1199;
-int kp = 3;
+static int MAX_DUTY = 1000;
+int kp = 4;
 
 // *****************************************************************************
 /* Application Data
@@ -459,7 +459,7 @@ void APP_Tasks(void) {
                     }
                 }
                 
-                 error = rxVal - 240; // 240 means the dot is in the middle of the screen
+                 error = rxVal - 320; // 240 means the dot is in the middle of the screen
                     if (error<0) { // slow down the left motor to steer to the left
                         error  = -error;
                         left = MAX_DUTY - kp*error;
